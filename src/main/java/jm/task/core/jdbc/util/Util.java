@@ -12,8 +12,6 @@ public class Util {
         String connectionURL = "jdbc:mysql://localhost:3306/test";
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection connection = DriverManager.getConnection(connectionURL, userName, password);
-
-
-        return connection;
+       return connection;
     }
 }
