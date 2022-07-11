@@ -3,10 +3,7 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,62 +15,57 @@ public class UserDaoJDBCImpl implements UserDao {
     private static final String deletingString = "DELETE FROM user WHERE id = ?";
     private static final String selectingString = "select * from user";
     private static final String truncatingString = "TRUNCATE TABLE user";
+    private static final Connection CONNECTION = Util.connectStuff();
 
     public UserDaoJDBCImpl() {
 
     }
 
     public void createUsersTable() {
-        try (Statement statement = Util.connectStuff().createStatement()) {
+        try (Statement statement = CONNECTION.createStatement()) {
             statement.executeUpdate(creationString);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void dropUsersTable() {
-        try (Statement statement = Util.connectStuff().createStatement()) {
+        try (Statement statement = CONNECTION.createStatement()) {
             statement.execute(droppingString);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void saveUser(String name, String lastName, byte age) {
         try {
-            PreparedStatement preparedStatement = Util.connectStuff().
+            PreparedStatement preparedStatement = CONNECTION.
                     prepareStatement(savingString);
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, lastName);
             preparedStatement.setByte(3, age);
             preparedStatement.executeUpdate();
-            System.out.printf("User с именем – %s добавлен в базу данных\n", name);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void removeUserById(long id) {
-        PreparedStatement preparedStatement = null;
         try {
-            preparedStatement = Util.connectStuff().
+            PreparedStatement preparedStatement = CONNECTION.
                     prepareStatement(deletingString);
             preparedStatement.setLong(1, id);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-
-        try (Statement statement = Util.connectStuff().createStatement()) {
+        try (Statement statement = CONNECTION.createStatement()) {
             ResultSet resultSet = statement.executeQuery(selectingString);
             while (resultSet.next()) {
-
                 String name = resultSet.getString("name");
                 String lastName = resultSet.getString("lastName");
                 byte age = resultSet.getByte("age");
@@ -82,8 +74,6 @@ public class UserDaoJDBCImpl implements UserDao {
                 user.setId(id);
                 users.add(user);
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -92,9 +82,9 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void cleanUsersTable() {
-        try (Statement statement = Util.connectStuff().createStatement()) {
+        try (Statement statement = CONNECTION.createStatement()) {
             statement.executeUpdate(truncatingString);
-        } catch (ClassNotFoundException | SQLException e) {
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
